@@ -26,11 +26,12 @@ class SignalDisplay():
             line, = ax.plot((np.linspace(config.x_start,config.x_end,n_points)),([y_location]*n_points),'black',linewidth=0.7)
             self.lines.append(line)
         ax.set_yticks(config.y_locations,config.channels)
+        ax.set_ylim(min(config.y_locations)-config.y_pad,max(config.y_locations)+config.y_pad)
         self.ax = ax
 
     def plot_data(self,signal):
         for i,(line,y_location) in enumerate(zip(self.lines,self.config.y_locations)):
-            channel_signal = signal[i,:]+y_location - np.mean(signal[i,:])
+            channel_signal = signal[i,:]+y_location
             line.set_ydata(channel_signal)
 
     def set_x_ticks(self,ticks,labels):
@@ -63,18 +64,20 @@ class ContinuousConfig():
         y_locations (list of float): Y-axis locations for each channel.
         title (str): Title for the visualization.
     """
-    def __init__(self,path_signal=str,Fq_signal=int,channels=list,y_locations=list,dtype='h5',start=0,windowsize=15,stepsize=10,title=None,**kwargs):
+    def __init__(self,path_signal=str,Fq_signal=int,channels=list,y_locations=list,dtype='h5',start=0,windowsize=15,stepsize=10,title=None,y_pad=10,**kwargs):
+        print(start,windowsize)
         self.path_signal = path_signal
-
         self.start = start
         self.dtype = dtype
         self.windowsize = windowsize
         self.Fq_signal = Fq_signal
         self.stepsize = stepsize
-        self.x_start,self.x_end = start,start+windowsize
+        self.x_start= start
+        self.x_end = start+windowsize
         self.channels = channels
         self.y_locations = y_locations
         self.title = title
+        self.y_pad = y_pad
         for key, value in kwargs.items():
             setattr(self, key, value)
 
@@ -102,8 +105,7 @@ class ContinuousLoader():
         Returns:
             np.ndarray: Loaded segment of the signal.
         """
-        start, end  = start* self.config.Fq_signal, (start+self.config.windowsize)*self.config.Fq_signal
-        signal = self.signal[:,start:end]
+        signal = self.signal[:,start* self.config.Fq_signal :(start+self.config.windowsize)*self.config.Fq_signal]
         return signal
 
 def load_full_signal_npy(path_signal,transforms):
@@ -116,9 +118,11 @@ def load_full_signal_npy(path_signal,transforms):
 
 def load_full_signal_h5(path_signal,channels,transforms):
     signal = []
-    with h5py.File('example.h5','r') as f:
+    with h5py.File(path_signal,'r') as f:
+        for name in f: print(name)
         for channel in channels:
             signal.append(f[channel][:])
+            if channel == 'spo2':print(f[channel][:])
     signal = np.array(signal)
 
     if transforms is not None:
@@ -188,7 +192,7 @@ class ContinuousViewer():
         self.config = config
         self.fig,self.ax = plt.subplots(1)
         self.display0 = SignalDisplay(self.ax,config)
-        self.loader0 = ContinuousLoader(config)
+        self.loader0 = ContinuousLoader(config,transforms=[z_scaler()])
         self.refresh(self.fig,self.display0,self.loader0,self.config)
         self.connect_actions()
 
@@ -216,3 +220,15 @@ class ContinuousViewer():
         fig.suptitle(config.title)
         fig.tight_layout()
         plt.draw()
+
+class z_scaler():
+    def __init__(self):
+        pass
+    def __call__(self,signal):
+        # Calculate mean and standard deviation of the signal
+        mean = np.mean(signal)
+        std_dev = np.std(signal) + 1e-10
+
+        # Z-scale the signal
+        z_scaled_signal = (signal - mean) / std_dev
+        return signal
