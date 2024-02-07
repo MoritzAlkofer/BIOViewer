@@ -1,11 +1,11 @@
 import matplotlib.pyplot as plt
-from src import SignalViewer, ContinuousLoader, ContinuousConfig
+from BIOViewer.src import SignalDisplay, ContinuousLoader, ContinuousConfig
 
 class EventViewer():
     def __init__(self,config):
         self.config = config
         self.fig,self.ax = plt.subplots(1)
-        self.viewer0 = SignalViewer(self.ax,config)
+        self.display0 = SignalDisplay(self.ax,config)
         self.loader0 = SignalLoader(config)
         self.refresh()
         self.connect_actions()
@@ -17,7 +17,7 @@ class EventViewer():
         # load and display data
         path_signal = self.config.path_signals[idx]
         signal0 = self.loader0.load_signal(path_signal)
-        self.viewer0.plot_data(signal0)
+        self.display0.plot_data(signal0)
         # add info 
         self.fig.suptitle(self.config.titles[idx])
         self.fig.tight_layout()
@@ -55,15 +55,15 @@ class ContinuousViewer():
         config (ContinuousConfig): Configuration object for visualization.
         fig (matplotlib.figure.Figure): Matplotlib figure object.
         ax (matplotlib.axes.Axes): Matplotlib axes object.
-        viewer0 (SignalViewer): SignalViewer object for visualization.
+        display0 (SignalDisplay): SignalDisplay object for visualization.
         loader0 (ContinuousLoader): ContinuousLoader object for loading signal data.
     """
     def __init__(self,config):
         self.config = config
         self.fig,self.ax = plt.subplots(1)
-        self.viewer0 = SignalViewer(self.ax,config)
+        self.display0 = SignalDisplay(self.ax,config)
         self.loader0 = ContinuousLoader(config)
-        self.refresh(fig,viewer0,config)
+        self.refresh(fig,display0,config)
         self.connect_actions()
 
         plt.show()
@@ -82,10 +82,10 @@ class ContinuousViewer():
         # get idx
         start = config.start
         signal0 = loader0.load_signal(start)
-        self.viewer0.plot_data(signal0)
+        self.display0.plot_data(signal0)
         ticks = list(range(0, config.windowsize + 1))
         labels = list(range(start, start+config.windowsize + 1))
-        viewer0.set_x_ticks(ticks,labels)
+        display0.set_x_ticks(ticks,labels)
         # add info 
         fig.suptitle(config.title)
         fig.tight_layout()

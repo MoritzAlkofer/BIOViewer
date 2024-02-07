@@ -63,10 +63,11 @@ class ContinuousConfig():
         y_locations (list of float): Y-axis locations for each channel.
         title (str): Title for the visualization.
     """
-    def __init__(self,path_signal=str,start=float,windowsize=float,stepsize=float,Fq_signal=int,channels=list,y_locations=list,title=str,**kwargs):
+    def __init__(self,path_signal=str,Fq_signal=int,channels=list,y_locations=list,dtype='h5',start=0,windowsize=15,stepsize=10,title=None,**kwargs):
         self.path_signal = path_signal
 
         self.start = start
+        self.dtype = dtype
         self.windowsize = windowsize
         self.Fq_signal = Fq_signal
         self.stepsize = stepsize
@@ -124,3 +125,94 @@ def load_full_signal_h5(path_signal,channels,transforms):
         for transform in transforms:
             signal = transform(signal)
     return signal
+
+
+class EventViewer():
+    def __init__(self,config):
+        self.config = config
+        self.fig,self.ax = plt.subplots(1)
+        self.display0 = SignalDisplay(self.ax,config)
+        self.loader0 = SignalLoader(config)
+        self.refresh()
+        self.connect_actions()
+        plt.show()
+
+    def refresh(self):
+        # get idx
+        idx = self.config.idx
+        # load and display data
+        path_signal = self.config.path_signals[idx]
+        signal0 = self.loader0.load_signal(path_signal)
+        self.display0.plot_data(signal0)
+        # add info 
+        self.fig.suptitle(self.config.titles[idx])
+        self.fig.tight_layout()
+        plt.draw()
+
+    def connect_actions(self):
+        action_list = {
+            'right': lambda: (setattr(self.config, 'idx', self.config.idx + 1), self.refresh()),
+            'left': lambda: (setattr(self.config, 'idx', self.config.idx - 1), self.refresh()),
+            }
+        self.fig.canvas.mpl_connect('key_press_event',lambda event: action_list[event.key]())
+"""
+class ContinuousLoader():
+    def __init__(self,config,transforms=None):
+        self.config = config
+        self.transforms = transforms if transforms is not None else []
+        self.signal = self.load_full_signal(config.path_signal)
+        
+    def load_full_signal(self,path_signal):
+        signal = np.load(path_signal)
+        for transform in self.transforms:
+            signal = transform(signal)
+        return signal
+
+    def load_signal(self,start):
+        start, end  = start* self.config.Fq_signal, (start+self.config.windowsize)*self.config.Fq_signal
+        signal = self.signal[:,start:end]
+        return signal
+"""
+class ContinuousViewer():
+    """
+    Viewer class for continuous signal visualization.
+
+    Attributes:
+        config (ContinuousConfig): Configuration object for visualization.
+        fig (matplotlib.figure.Figure): Matplotlib figure object.
+        ax (matplotlib.axes.Axes): Matplotlib axes object.
+        display0 (SignalDisplay): SignalDisplay object for visualization.
+        loader0 (ContinuousLoader): ContinuousLoader object for loading signal data.
+    """
+    def __init__(self,config):
+        self.config = config
+        self.fig,self.ax = plt.subplots(1)
+        self.display0 = SignalDisplay(self.ax,config)
+        self.loader0 = ContinuousLoader(config)
+        self.refresh(self.fig,self.display0,self.loader0,self.config)
+        self.connect_actions()
+
+        plt.show()
+
+
+    def connect_actions(self):
+        """Connect keyboard actions for interaction."""
+        action_list = {
+            'right': lambda: (setattr(self.config, 'start', self.config.start + self.config.stepsize), self.refresh(self.fig,self.display0,self.loader0,self.config)),
+            'left': lambda: (setattr(self.config, 'start', self.config.start - self.config.stepsize), self.refresh(self.fig,self.display0,self.loader0,self.config)),
+            }
+        self.fig.canvas.mpl_connect('key_press_event',lambda event: action_list[event.key]())
+
+    def refresh(self,fig,display,loader,config):
+        """Refresh the visualization."""
+        # get idx
+        start = config.start
+        signal = loader.load_signal(start)
+        display.plot_data(signal)
+        ticks = list(range(0, config.windowsize + 1))
+        labels = list(range(start, start+config.windowsize + 1))
+        display.set_x_ticks(ticks,labels)
+        # add info 
+        fig.suptitle(config.title)
+        fig.tight_layout()
+        plt.draw()
