@@ -3,6 +3,8 @@ import mne
 import scipy
 import matplotlib.pyplot as plt
 import h5py
+from functools import partial
+import datetime
 
 class EventConfig():
     def __init__(self,path_signals,titles,channels,y_locations,x_start,x_end,Fq_signal,idx=0,**kwargs):
@@ -64,8 +66,7 @@ class ContinuousConfig():
         y_locations (list of float): Y-axis locations for each channel.
         title (str): Title for the visualization.
     """
-    def __init__(self,path_signal=str,Fq_signal=int,channels=list,y_locations=list,dtype='h5',start=0,windowsize=15,stepsize=10,title=None,y_pad=10,**kwargs):
-        print(start,windowsize)
+    def __init__(self,path_signal=str,Fq_signal=int,channels=list,y_locations=list,dtype='h5',start=0,windowsize=15,stepsize=10,title=None,y_pad=10,real_time=False,**kwargs):
         self.path_signal = path_signal
         self.start = start
         self.dtype = dtype
@@ -78,6 +79,7 @@ class ContinuousConfig():
         self.y_locations = y_locations
         self.title = title
         self.y_pad = y_pad
+        self.real_time =real_time
         for key, value in kwargs.items():
             setattr(self, key, value)
 
@@ -108,6 +110,24 @@ class ContinuousLoader():
         signal = self.signal[:,start* self.config.Fq_signal :(start+self.config.windowsize)*self.config.Fq_signal]
         return signal
 
+class ActionHandler():
+    def __init__(self,config,display,loader):
+        self.actions = {
+            'right': partial(move_window, config, 'right'), 
+            'left': partial(move_window, config, 'left')
+            }
+        self.config, self.display, self.loader = config,display,loader
+
+    def __call__(self,key):
+        self.actions[key]()
+        refresh(self.config,self.display,self.loader)
+
+class ContinuousViewer():
+    def __init__(self,ax,config,transforms=None):
+        self.display = SignalDisplay(ax,config)
+        self.loader = ContinuousLoader(config,transforms) 
+        self.action = ActionHandler(config,self.display, self.loader)
+
 def load_full_signal_npy(path_signal,transforms):
     '''load the full signal data'''
     signal = np.load(path_signal)
@@ -119,116 +139,52 @@ def load_full_signal_npy(path_signal,transforms):
 def load_full_signal_h5(path_signal,channels,transforms):
     signal = []
     with h5py.File(path_signal,'r') as f:
-        for name in f: print(name)
         for channel in channels:
             signal.append(f[channel][:])
-            if channel == 'spo2':print(f[channel][:])
     signal = np.array(signal)
 
     if transforms is not None:
         for transform in transforms:
             signal = transform(signal)
     return signal
+    
+def move_window(config,direction='right'):
+    if direction =='right':
+        config.start = config.start + config.windowsize
+    if direction =='left':
+        config.start = config.start - config.windowsize
 
+def seconds_to_hms(seconds):
+    # Construct a datetime object with a base date
+    base_date = datetime.datetime(1900, 1, 1)
+    
+    # Add the timedelta to the base date
+    result_datetime = base_date + datetime.timedelta(seconds=seconds)
 
-class EventViewer():
-    def __init__(self,config):
-        self.config = config
-        self.fig,self.ax = plt.subplots(1)
-        self.display0 = SignalDisplay(self.ax,config)
-        self.loader0 = SignalLoader(config)
-        self.refresh()
-        self.connect_actions()
-        plt.show()
+    # Format the result as hours:minutes:seconds
+    formatted_time = result_datetime.strftime('%H:%M:%S')
 
-    def refresh(self):
-        # get idx
-        idx = self.config.idx
-        # load and display data
-        path_signal = self.config.path_signals[idx]
-        signal0 = self.loader0.load_signal(path_signal)
-        self.display0.plot_data(signal0)
-        # add info 
-        self.fig.suptitle(self.config.titles[idx])
-        self.fig.tight_layout()
-        plt.draw()
+    return formatted_time
 
-    def connect_actions(self):
-        action_list = {
-            'right': lambda: (setattr(self.config, 'idx', self.config.idx + 1), self.refresh()),
-            'left': lambda: (setattr(self.config, 'idx', self.config.idx - 1), self.refresh()),
-            }
-        self.fig.canvas.mpl_connect('key_press_event',lambda event: action_list[event.key]())
-"""
-class ContinuousLoader():
-    def __init__(self,config,transforms=None):
-        self.config = config
-        self.transforms = transforms if transforms is not None else []
-        self.signal = self.load_full_signal(config.path_signal)
-        
-    def load_full_signal(self,path_signal):
-        signal = np.load(path_signal)
-        for transform in self.transforms:
-            signal = transform(signal)
-        return signal
+def update_x_ticks(config, display):
+    ticks = list(range(0, config.windowsize + 1))
+    labels = list(range(config.start, config.start+config.windowsize + 1))
+    if config.real_time:
+        labels = [seconds_to_hms(label) for label in labels]
+    display.set_x_ticks(ticks,labels)
 
-    def load_signal(self,start):
-        start, end  = start* self.config.Fq_signal, (start+self.config.windowsize)*self.config.Fq_signal
-        signal = self.signal[:,start:end]
-        return signal
-"""
-class ContinuousViewer():
-    """
-    Viewer class for continuous signal visualization.
+def refresh(config,display,loader):
+    """Refresh the visualization."""
+    # get idx
+    signal = loader.load_signal(config.start)
+    display.plot_data(signal)
+    update_x_ticks(config,display)
+    # add info 
+    plt.draw()
 
-    Attributes:
-        config (ContinuousConfig): Configuration object for visualization.
-        fig (matplotlib.figure.Figure): Matplotlib figure object.
-        ax (matplotlib.axes.Axes): Matplotlib axes object.
-        display0 (SignalDisplay): SignalDisplay object for visualization.
-        loader0 (ContinuousLoader): ContinuousLoader object for loading signal data.
-    """
-    def __init__(self,config):
-        self.config = config
-        self.fig,self.ax = plt.subplots(1)
-        self.display0 = SignalDisplay(self.ax,config)
-        self.loader0 = ContinuousLoader(config,transforms=[z_scaler()])
-        self.refresh(self.fig,self.display0,self.loader0,self.config)
-        self.connect_actions()
+def activate_viewers(fig,*viewers):
+    fig.canvas.mpl_connect('key_press_event', lambda event: handle_key_press(event, *viewers))
 
-        plt.show()
-
-
-    def connect_actions(self):
-        """Connect keyboard actions for interaction."""
-        action_list = {
-            'right': lambda: (setattr(self.config, 'start', self.config.start + self.config.stepsize), self.refresh(self.fig,self.display0,self.loader0,self.config)),
-            'left': lambda: (setattr(self.config, 'start', self.config.start - self.config.stepsize), self.refresh(self.fig,self.display0,self.loader0,self.config)),
-            }
-        self.fig.canvas.mpl_connect('key_press_event',lambda event: action_list[event.key]())
-
-    def refresh(self,fig,display,loader,config):
-        """Refresh the visualization."""
-        # get idx
-        start = config.start
-        signal = loader.load_signal(start)
-        display.plot_data(signal)
-        ticks = list(range(0, config.windowsize + 1))
-        labels = list(range(start, start+config.windowsize + 1))
-        display.set_x_ticks(ticks,labels)
-        # add info 
-        fig.suptitle(config.title)
-        fig.tight_layout()
-        plt.draw()
-
-class z_scaler():
-    def __init__(self):
-        pass
-    def __call__(self,signal):
-        # Calculate mean and standard deviation of the signal
-        mean = np.mean(signal)
-        std_dev = np.std(signal) + 1e-10
-
-        # Z-scale the signal
-        z_scaled_signal = (signal - mean) / std_dev
-        return signal
+def handle_key_press(event, *viewers):
+    for viewer in viewers:
+        viewer.action(event.key)
