@@ -1,8 +1,7 @@
 import matplotlib.pyplot as plt
-from config import ContinuousConfig
-from display import  SignalDisplay
-from loader import ContinuousLoader
-from action import ActionHandler
+from .display import  SignalDisplay
+from .loader import ContinuousLoader
+from .action import ActionHandler
 
 class ContinuousViewer():
     def __init__(self,configs):
