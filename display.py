@@ -5,8 +5,8 @@ class SignalDisplay():
         self.config = config
         self.lines = []
         for y_location in config.y_locations:
-            n_points = int((config.x_end-config.x_start)*config.Fq_signal)
-            line, = ax.plot((np.linspace(config.x_start,config.x_end,n_points)),([y_location]*n_points),'black',linewidth=0.7)
+            n_points = int((config.t_end-config.t_start)*config.Fs)
+            line, = ax.plot((np.linspace(config.t_start,config.t_end,n_points)),([y_location]*n_points),'black',linewidth=0.7)
             self.lines.append(line)
         ax.set_yticks(config.y_locations,config.display_channels)
         ax.set_ylim(min(config.y_locations)-config.y_pad,max(config.y_locations)+config.y_pad)
@@ -17,5 +17,5 @@ class SignalDisplay():
             channel_signal = signal[i,:]+y_location
             line.set_ydata(channel_signal)
 
-    def set_x_ticks(self,ticks,labels):
+    def set_t_ticks(self,ticks,labels):
         self.ax.set_xticks(ticks,labels)

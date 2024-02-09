@@ -15,19 +15,19 @@ class ActionHandler():
 
 def move_window(config,display,loader,direction='right'):
     if direction =='right':
-        config.start = config.start + config.windowsize
+        config.t_start = config.t_start + config.windowsize
     if direction =='left':
-        config.start = config.start - config.windowsize
-    signal = loader.load_signal(config.start)
+        config.t_start = config.t_start - config.windowsize
+    signal = loader.load_signal(config.t_start)
     display.plot_data(signal)
-    update_x_ticks(config,display)
+    update_t_ticks(config,display)
     # add info 
     plt.draw()
 
 def init_viewer(config,display,loader):
-    signal = loader.load_signal(config.start)
+    signal = loader.load_signal(config.t_start)
     display.plot_data(signal)
-    update_x_ticks(config,display)
+    update_t_ticks(config,display)
     # add info 
     plt.draw()
 
@@ -42,13 +42,13 @@ def seconds_to_hms(seconds):
 
     return formatted_time
 
-def update_x_ticks(config, display):
+def update_t_ticks(config, display):
     ticks = list(range(0, config.windowsize + 1))
-    labels = list(range(config.start, config.start+config.windowsize + 1))
-    if config.x_ticks ==True:        
+    labels = list(range(config.t_start, config.t_start+config.windowsize + 1))
+    if config.t_ticks ==True:        
         if config.real_time==True:
             labels = [seconds_to_hms(label) for label in labels]
-        display.set_x_ticks(ticks,labels)
+        display.set_t_ticks(ticks,labels)
     else:
-        display.set_x_ticks(ticks,[None]*len(labels))
+        display.set_t_ticks([],[])
 
