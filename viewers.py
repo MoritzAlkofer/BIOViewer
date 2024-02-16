@@ -6,13 +6,15 @@ import os
 from functools import partial
 
 class ContinuousViewer():
-    def __init__(self,configs,t_start=0,windowsize=15,stepsize=10,title=None,path_save='Figures'):
+    def __init__(self,configs,t_start=0,windowsize=15,stepsize=10,title=None,path_save='Figures',markers=None):
         self.t_start = t_start
         self.windowsize = windowsize
         self.stepsize = stepsize
         self.title = title
         self.t_end = t_start+windowsize
         self.path_save = path_save
+        self.markers = [] if markers == None else markers
+        self.marker_idx = 0
 
         self.fig, axs = plt.subplots((len(configs)))
 

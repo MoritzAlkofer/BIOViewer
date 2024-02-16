@@ -26,7 +26,9 @@ class SignalLoader():
         Returns:
             np.ndarray: Loaded segment of the signal.
         """
-        signal = self.signal[:,start* self.Fs :(start+self.windowsize)*self.Fs]
+        start_ts = int(start* self.Fs)
+        end_ts = int((start+self.windowsize)*self.Fs)
+        signal = self.signal[:,start_ts: end_ts]
         for transform in self.transforms:
             signal = transform(signal)
         return signal

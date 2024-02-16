@@ -8,6 +8,8 @@ class SignalAction():
         self.actions = {
             'right': partial(move_window, config, display, loader, 'right'), 
             'left': partial(move_window, config, display, loader, 'left'),
+            'n': partial(move_window, config, display, loader, 'n'),
+            'b': partial(move_window, config, display, loader, 'b'),
             'init': partial(init_display, config, display, loader),
             }
 
@@ -16,7 +18,10 @@ class SignalAction():
             self.actions[key]()
 
 def move_window(config,display,loader,direction='right'):
-    config.t_start = move_t_start(config.t_start,config.windowsize,direction)
+    if direction in ['left','right']:
+        config.t_start = move_t_start(config.t_start,config.windowsize,direction)
+    if direction in ['n','b']:
+        config.t_start,config.marker_idx = go_to_marker(config.t_start,config.windowsize,config.markers,config.marker_idx,direction)
     signal = loader.load_signal(config.t_start)
     display.plot_data(signal)
     update_t_ticks(config,display)
@@ -42,7 +47,7 @@ def seconds_to_hms(seconds):
 
 def update_t_ticks(config, display):
     ticks = list(range(0, config.windowsize + 1))
-    labels = list(range(config.t_start, config.t_start+config.windowsize + 1))
+    labels = list(range(int(config.t_start), int(config.t_start+config.windowsize) + 1))
     if config.t_ticks ==True:        
         if config.real_time==True:
             labels = [seconds_to_hms(label) for label in labels]
@@ -55,7 +60,9 @@ class ViewerAction():
          self.actions = {
             'z': lambda: self.save_figure(viewer.fig,viewer.path_save,viewer.title,viewer.t_start),
             'right': partial(self.move_viewer, viewer, 'right'),
-            'left': partial(self.move_viewer, viewer, 'left')
+            'left': partial(self.move_viewer, viewer, 'left'),
+            'n': partial(self.move_viewer, viewer, 'n'),
+            'b': partial(self.move_viewer, viewer, 'b')
             }
 
     def __call__(self,key):
@@ -68,7 +75,14 @@ class ViewerAction():
         fig.savefig(savename)
 
     def move_viewer(self,viewer,direction):
-        viewer.t_start = move_t_start(viewer.t_start,viewer.windowsize,direction)
+        if direction in ['left','right']:
+            viewer.t_start = move_t_start(viewer.t_start,viewer.windowsize,direction)
+        if direction in ['n','b']:
+            viewer.t_start,viewer.marker_idx = go_to_marker(viewer.t_start,
+                                                            viewer.windowsize,
+                                                            viewer.markers,
+                                                            viewer.marker_idx,
+                                                            direction)
 
 def move_t_start(t_start,windowsize,direction):
     if direction =='right':
@@ -76,3 +90,13 @@ def move_t_start(t_start,windowsize,direction):
     if direction =='left':
         t_start = t_start - windowsize
     return t_start
+
+def go_to_marker(t_start,windowsize,markers,marker_idx,direction):
+    if direction == 'n':
+        t_start = markers[marker_idx]-windowsize/2
+        marker_idx += 1
+    if direction == 'b':
+        t_start = markers[marker_idx]-windowsize/2
+        marker_idx -= 1
+    return t_start, marker_idx
+
