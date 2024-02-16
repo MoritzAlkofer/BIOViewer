@@ -10,6 +10,7 @@ class SignalDisplay():
             self.lines.append(line)
         ax.set_yticks(config.y_locations,config.display_channels)
         ax.set_ylim(min(config.y_locations)-config.y_pad,max(config.y_locations)+config.y_pad)
+        ax.set_xlim(config.t_start,config.t_end)
         self.ax = ax
 
     def plot_data(self,signal):

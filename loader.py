@@ -1,7 +1,7 @@
 import numpy as np
 import h5py 
 
-class ContinuousLoader():
+class SignalLoader():
     """
     Loader class for continuous signal data.
 
@@ -45,7 +45,7 @@ class EventLoader():
         return signal
 
 
-def load_full_signal_h5(path_signal):
+'''def load_full_signal_h5(path_signal):
     signal = []
     with h5py.File(path_signal,'r') as f:
         for channel in f.keys():
@@ -56,4 +56,4 @@ def load_full_signal_h5(path_signal):
         for transform in transforms:
             signal = transform(signal)
     return signal
-    
+    '''

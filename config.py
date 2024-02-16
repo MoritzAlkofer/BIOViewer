@@ -12,14 +12,10 @@ class ContinuousConfig():
         y_locations (list of float): Y-axis locations for each channel.
         title (str): Title for the visualization.
     """
-    def __init__(self,path_signal=str,Fs=int,display_channels=list,y_locations=list,dtype='npy',t_start=0,windowsize=15,stepsize=10,title=None,y_pad=10,real_time=False,t_ticks=True,**kwargs):
+    def __init__(self,path_signal=str,Fs=int,display_channels=list,y_locations=list,dtype='npy',title=None,y_pad=10,real_time=False,t_ticks=True,**kwargs):
         self.path_signal = path_signal
         self.dtype = dtype
-        self.windowsize = windowsize
         self.Fs = Fs
-        self.stepsize = stepsize
-        self.t_start= t_start
-        self.t_end = t_start+windowsize
         self.display_channels = display_channels
         self.y_locations = y_locations
         self.title = title
