@@ -16,14 +16,14 @@ class SignalConfig():
                  real_time=False,t_ticks=True,y_locations='auto',scale='auto',transforms=None):
         self.path_signal = path_signal
         self.Fs = Fs
-        self.channel_names = channel_names if isinstance(channel_names,list) else [channel_names]
+        self.channel_names = _validate_property(channel_names)
         self.y_locations = [-idx for idx in range(len(self.channel_names))] if y_locations == 'auto' else y_locations
         self.title = title
         self.unit = unit
         self.real_time =real_time
         self.t_ticks = t_ticks
         self.scale = scale
-        self.transforms = transforms
+        self.transforms = _validate_property(transforms)
 
 class ViewerConfig():
     """
@@ -43,5 +43,14 @@ class ViewerConfig():
         self.title = title
         self.t_end = t_start+windowsize
         self.path_save = path_save
-        self.timestamps = [] if timestamps == None else timestamps
+        self.timestamps = _validate_property(timestamps)
         self.timestamp_idx = -1
+
+
+def _validate_property(property):
+    """Ensure signal_configs is a list."""
+    if property == None:
+        return []
+    if not isinstance(property, list):
+        return [property]
+    return property
