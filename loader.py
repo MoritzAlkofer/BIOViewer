@@ -9,16 +9,16 @@ class SignalLoader():
         config (ContinuousConfig): Configuration object for loading.
         transforms (list of callable): List of functions for signal transformation.
     """
-    def __init__(self,path_signal,Fs,windowsize,dtype,transforms=None):
+    def __init__(self,path_signal,Fs,dtype,transforms=None):
         self.transforms = transforms if transforms is not None else []
-        self.windowsize = windowsize
+        print(transforms)
         self.Fs = Fs
         if dtype == 'npy':
             self.signal = np.load(path_signal)
         if dtype == 'h5':
             self.signal = load_full_signal_h5(path_signal)
 
-    def load_signal(self,start):
+    def load_data(self,start,windowsize):
         """
         Load a segment of the signal data.
         Args:
@@ -27,7 +27,7 @@ class SignalLoader():
             np.ndarray: Loaded segment of the signal.
         """
         start_ts = int(start* self.Fs)
-        end_ts = int((start+self.windowsize)*self.Fs)
+        end_ts = int((start+windowsize)*self.Fs)
         signal = self.signal[:,start_ts: end_ts]
         for transform in self.transforms:
             signal = transform(signal)

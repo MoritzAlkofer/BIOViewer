@@ -1,20 +1,19 @@
 import numpy as np
 
 class SignalDisplay():
-    def __init__(self,ax,config):
-        self.config = config
+    def __init__(self,ax,t_start,t_end,channel_names,y_locations,Fs,y_pad):
         self.lines = []
-        for y_location in config.y_locations:
-            n_points = int((config.t_end-config.t_start)*config.Fs)
-            line, = ax.plot((np.linspace(config.t_start,config.t_end,n_points)),([y_location]*n_points),'black',linewidth=0.7)
+        for y_location in y_locations:
+            n_points = int((t_end-t_start)*Fs)
+            line, = ax.plot((np.linspace(t_start,t_end,n_points)),([y_location]*n_points),'black',linewidth=0.7)
             self.lines.append(line)
-        ax.set_yticks(config.y_locations,config.display_channels)
-        ax.set_ylim(min(config.y_locations)-config.y_pad,max(config.y_locations)+config.y_pad)
-        ax.set_xlim(config.t_start,config.t_end)
+        ax.set_yticks(y_locations,channel_names)
+        ax.set_ylim(min(y_locations)-y_pad,max(y_locations)+y_pad)
+        ax.set_xlim(t_start,t_end)
         self.ax = ax
 
-    def plot_data(self,signal):
-        for i,(line,y_location) in enumerate(zip(self.lines,self.config.y_locations)):
+    def plot_data(self,signal,y_locations):
+        for i,(line,y_location) in enumerate(zip(self.lines,y_locations)):
             channel_signal = signal[i,:]+y_location
             line.set_ydata(channel_signal)
 

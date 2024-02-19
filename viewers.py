@@ -1,40 +1,46 @@
 import matplotlib.pyplot as plt
 from display import  SignalDisplay
 from loader import SignalLoader
-from action import SignalAction, ViewerAction
-import os
+from action import ActionHandler
+from config import ViewerConfig, SignalConfig
 from functools import partial
 
-class ContinuousViewer():
-    def __init__(self,configs,t_start=0,windowsize=15,stepsize=10,title=None,path_save='Figures',markers=None):
-        self.t_start = t_start
-        self.windowsize = windowsize
-        self.stepsize = stepsize
-        self.title = title
-        self.t_end = t_start+windowsize
-        self.path_save = path_save
-        self.markers = [] if markers == None else markers
-        self.marker_idx = 0
+class Viewer():
+    def __init__(self,signal_configs,t_start=0,windowsize=15,stepsize=10,
+                 title=None,path_save='Figures',timestamps=None):
+        self.signal_configs = ([signal_configs] 
+                          if not isinstance(signal_configs,list) 
+                          else signal_configs)
+        
+        self.viewer_config = ViewerConfig(t_start,windowsize,stepsize,title,
+                                          path_save,timestamps)
+        
+        self.fig, self.axs = plt.subplots((len(signal_configs)))
 
-        self.fig, axs = plt.subplots((len(configs)))
-
-        for i,config in enumerate(configs):
-            # add viewer base configuration to signal config
-            config.__dict__.update(self.__dict__)
-            ax = axs if len(configs)==1 else axs[i]
-            self.init_signal(self.fig,ax,config)
-
+        self.displays = []
+        self.loaders = []
+        for i,signal_config in enumerate(signal_configs):
+            # add viewer base configuration to signal confisg
+            ax = self.axs if len(signal_configs)==1 else self.axs[i]
+            display, loader = self.init_signal(ax,signal_config,self.viewer_config)
+            self.displays.append(display); self.loaders.append(loader)
         self.fig.suptitle(title)
         self.fig.tight_layout()
-        handler = ViewerAction(self)
-        self.fig.canvas.mpl_connect('key_press_event', lambda event: handler(event.key))
+        action_handler = ActionHandler(self.fig,self.viewer_config,
+                                       self.signal_configs,self.displays,self.loaders)
+        self.fig.canvas.mpl_connect('key_press_event', lambda event: action_handler(event.key))
 
-    def init_signal(self,fig,ax,config):
-        display = SignalDisplay(ax,config)
-        loader = SignalLoader(config.path_signal,config.Fs,config.windowsize,config.dtype)
-        action = SignalAction(config,display,loader)
-        # Use a default argument to capture the current actionhandler
-        fig.canvas.mpl_connect('key_press_event', lambda event, handler=action: handler(event.key))
-        # load first image
-        action('init')
-
+    def init_signal(self,ax,signal_config,viewer_config):
+        display = SignalDisplay(ax,
+                                viewer_config.t_start,
+                                viewer_config.t_end,
+                                signal_config.channel_names,
+                                signal_config.y_locations,
+                                signal_config.Fs,
+                                signal_config.y_pad)
+        
+        loader = SignalLoader(signal_config.path_signal,
+                              signal_config.Fs,
+                              signal_config.dtype,
+                              signal_config.transforms)
+        return display, loader
