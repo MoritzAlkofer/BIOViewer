@@ -12,16 +12,17 @@ class SignalConfig():
         y_locations (list of float): Y-axis locations for each channel.
         title (str): Title for the visualization.
     """
-    def __init__(self,path_signal=str,Fs=int,channel_names=list,y_locations=list,dtype='npy',title=None,y_pad=10,real_time=False,t_ticks=True,transforms=None):
+    def __init__(self,path_signal=str,Fs=int,channel_names=list,title=None,unit='arbitrary units',
+                 real_time=False,t_ticks=True,y_locations='auto',scale='auto',transforms=None):
         self.path_signal = path_signal
-        self.dtype = dtype
         self.Fs = Fs
-        self.channel_names = channel_names
-        self.y_locations = y_locations
+        self.channel_names = channel_names if isinstance(channel_names,list) else [channel_names]
+        self.y_locations = [-idx for idx in range(len(self.channel_names))] if y_locations == 'auto' else y_locations
         self.title = title
-        self.y_pad = y_pad
+        self.unit = unit
         self.real_time =real_time
         self.t_ticks = t_ticks
+        self.scale = scale
         self.transforms = transforms
 
 class ViewerConfig():
@@ -43,4 +44,4 @@ class ViewerConfig():
         self.t_end = t_start+windowsize
         self.path_save = path_save
         self.timestamps = [] if timestamps == None else timestamps
-        self.timestamp_idx = 0
+        self.timestamp_idx = -1
