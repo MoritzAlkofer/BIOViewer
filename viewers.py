@@ -119,6 +119,9 @@ class ActionHandler():
                                                             direction)        
 
     def go_to_marker(self,t_start,windowsize,timestamps,timestamp_idx,direction):
+        if len(timestamps)==0:
+            print('No timestamps specified!')
+            return t_start, 0 
         if direction == 'n':
             timestamp_idx += 1
             t_start = timestamps[timestamp_idx%len(timestamps)]-windowsize/2
