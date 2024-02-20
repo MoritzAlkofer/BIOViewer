@@ -18,7 +18,7 @@ class SignalDisplay():
             self.lines.append(line)
         plot_scale(ax,scale,unit)
         ax.set_yticks(y_locations,channel_names)
-        ax.set_ylim(min(y_locations)-1.5,max(y_locations)+1.5)
+        ax.set_ylim(min(y_locations)-1,max(y_locations)+1)
         ax.set_xlim(t_start,t_end)
         self.ax = ax
 
@@ -32,5 +32,5 @@ class SignalDisplay():
 
 
 def plot_scale(ax,scale,unit):
-    ax.plot((1,1),(0,1),'r')
-    ax.text(1.1,0.5,f'{scale} {unit}',c='r')
+    ax.plot((1,1),(0,-1),'r')
+    ax.text(1.1,-0.5,f'{scale} {unit}',c='r')

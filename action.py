@@ -39,7 +39,7 @@ class ActionHandler():
 
     def move_t_start(self,direction,viewer_config):
         if direction in ['left','right']:
-            viewer_config.t_start = move_t_start(viewer_config.t_start,viewer_config.windowsize,direction)
+            viewer_config.t_start = move_t_start(viewer_config.t_start,viewer_config.stepsize,direction)
         if direction in ['n','b']:
             viewer_config.t_start,viewer_config.timestamp_idx = go_to_marker(viewer_config.t_start,
                                                             viewer_config.windowsize,
@@ -80,19 +80,19 @@ def update_signal(t_start,windowsize,signal_config,display,loader):
     update_t_ticks(display,t_start,windowsize,signal_config.t_ticks,signal_config.real_time)
     plt.draw()
 
-def move_t_start(t_start,windowsize,direction):
+def move_t_start(t_start,stepsize,direction):
     if direction =='right':
-        t_start = t_start + windowsize
+        t_start = t_start + stepsize
     if direction =='left':
-        t_start = t_start - windowsize
+        t_start = t_start - stepsize
     return t_start
 
 def go_to_marker(t_start,windowsize,timestamps,timestamp_idx,direction):
     if direction == 'n':
         timestamp_idx += 1
-        t_start = timestamps[timestamp_idx]-windowsize/2
+        t_start = timestamps[timestamp_idx%len(timestamps)]-windowsize/2
     if direction == 'b':
         timestamp_idx -= 1
-        t_start = timestamps[timestamp_idx]-windowsize/2
+        t_start = timestamps[timestamp_idx%len(timestamps)]-windowsize/2
     return t_start, timestamp_idx
 

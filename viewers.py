@@ -14,7 +14,7 @@ class Viewer():
                           if not isinstance(signal_configs,list) 
                           else signal_configs)
         if height_ratios == 'auto':
-            height_ratios = [len(signal_config.channel_names) for signal_config in signal_configs]
+            height_ratios = [len(signal_config.channel_names)+1 for signal_config in signal_configs]
     
         self.viewer_config = ViewerConfig(t_start,windowsize,stepsize,title,
                                           path_save,timestamps)
@@ -24,7 +24,7 @@ class Viewer():
         self.displays = []
         self.loaders = []
         for i,signal_config in enumerate(signal_configs):
-            # add viewer base configuration to signal confisg
+            # add viewer base configuration to signal configs
             ax = self.axs if len(signal_configs)==1 else self.axs[i]
             display, loader = self.init_signal(ax,signal_config,self.viewer_config)
             self.displays.append(display); self.loaders.append(loader)
@@ -43,10 +43,12 @@ class Viewer():
     
     
     def init_signal(self,ax,signal_config,viewer_config):
-        loader = SignalLoader(signal_config.path_signal,
+        loader = SignalLoader(signal_config.signal,
                               signal_config.Fs,
                               signal_config.transforms)
-        signal_config.scale = self.auto_scale(loader.signal) if signal_config.scale == 'auto' else signal_config.scale
+        signal_config.scale = (self.auto_scale(loader.signal) 
+                               if signal_config.scale == 'auto' 
+                               else signal_config.scale)
         display = SignalDisplay(ax,viewer_config,signal_config)
         
         return display, loader

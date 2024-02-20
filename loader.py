@@ -9,13 +9,10 @@ class SignalLoader():
         config (ContinuousConfig): Configuration object for loading.
         transforms (list of callable): List of functions for signal transformation.
     """
-    def __init__(self,path_signal,Fs,transforms=None):
+    def __init__(self,signal,Fs,transforms=None):
         self.transforms = transforms if transforms is not None else []
         self.Fs = Fs
-        if path_signal.split('.')[-1] == 'npy':
-            self.signal = np.load(path_signal)
-        if path_signal.split('.')[-1] == 'h5':
-            self.signal = load_full_signal_h5(path_signal)
+        self.signal = signal
         
         
     def load_signal(self,start,windowsize,scale):
@@ -37,7 +34,6 @@ class SignalLoader():
 class EventLoader():
     def __init__(self,config,transforms=None):
         self.config = config
-        self.transforms = transforms if transforms is not None else []
 
     def load_signal(self,path_signal):
         signal = np.load(path_signal)
@@ -46,17 +42,3 @@ class EventLoader():
         for transform in self.transforms:
             signal = transform(signal)
         return signal
-
-
-'''def load_full_signal_h5(path_signal):
-    signal = []
-    with h5py.File(path_signal,'r') as f:
-        for channel in f.keys():
-            signal.append(f[channel][:])
-    signal = np.array(signal)
-
-    if transforms is not None:
-        for transform in transforms:
-            signal = transform(signal)
-    return signal
-    '''

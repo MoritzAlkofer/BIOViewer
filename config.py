@@ -12,9 +12,9 @@ class SignalConfig():
         y_locations (list of float): Y-axis locations for each channel.
         title (str): Title for the visualization.
     """
-    def __init__(self,path_signal=str,Fs=int,channel_names=list,title=None,unit='arbitrary units',
+    def __init__(self,signal,Fs=int,channel_names=list,title=None,unit='arbitrary units',
                  real_time=False,t_ticks=True,y_locations='auto',scale='auto',transforms=None):
-        self.path_signal = path_signal
+        self.signal = signal
         self.Fs = Fs
         self.channel_names = _validate_property(channel_names)
         self.y_locations = [-idx for idx in range(len(self.channel_names))] if y_locations == 'auto' else y_locations
