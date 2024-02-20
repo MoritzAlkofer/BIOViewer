@@ -1,38 +1,39 @@
 import matplotlib.pyplot as plt
-from display import  SignalDisplay
-from loader import SignalLoader
-from config import ViewerConfig
+from BIOViewer.display import  SignalDisplay
+from BIOViewer.loader import SignalLoader
+from BIOViewer.config import ViewerConfig
 import numpy as np
 
 
-class Viewer():
+class ContinuousViewer():
     def __init__(self,signal_configs,t_start=0,windowsize=15,stepsize=10,
                  title=None,path_save='Figures',timestamps=None,
                  height_ratios='auto',figsize=(7,4)):
-        self.signal_configs = ([signal_configs] 
-                          if not isinstance(signal_configs,list) 
-                          else signal_configs)
-        if height_ratios == 'auto':
-            height_ratios = [len(signal_config.channel_names)+1 for signal_config in signal_configs]
-    
-        self.viewer_config = ViewerConfig(t_start,windowsize,stepsize,title,
-                                          path_save,timestamps)
         
+        self.signal_configs = _validate_property(signal_configs)
+        height_ratios = self._init_height_ratios(height_ratios,signal_configs)
+        self.viewer_config = ViewerConfig(t_start,windowsize,stepsize,title,path_save,timestamps)
         self.fig, self.axs = plt.subplots((len(signal_configs)),height_ratios=height_ratios,figsize=figsize)
+        self.displays, self.loaders = self._build_displays_and_loaders(self.axs,signal_configs,self.viewer_config)
 
-        self.displays = []
-        self.loaders = []
-        for i,signal_config in enumerate(signal_configs):
-            # add viewer base configuration to signal configs
-            ax = self.axs if len(signal_configs)==1 else self.axs[i]
-            display, loader = self.init_signal(ax,signal_config,self.viewer_config)
-            self.displays.append(display); self.loaders.append(loader)
-        self.fig.suptitle(title)
-        self.fig.tight_layout()
-        action_handler = ActionHandler(self.fig,self.viewer_config,
-                                       self.signal_configs,self.displays,self.loaders)
+        action_handler = ActionHandler(self.fig,self.viewer_config,self.signal_configs,self.displays,self.loaders)
         action_handler('init')
         self.fig.canvas.mpl_connect('key_press_event', lambda event: action_handler(event.key))
+
+    def _init_height_ratios(self,height_ratios,signal_configs):
+        if height_ratios == 'auto':
+            height_ratios = [len(signal_config.channel_names)+1 for signal_config in signal_configs]
+        return height_ratios
+    
+    def _build_displays_and_loaders(self,axs,signal_configs,viewer_config):    
+        displays = []
+        loaders = []
+        for i,signal_config in enumerate(signal_configs):
+            # add viewer base configuration to signal configs
+            ax = axs if len(signal_configs)==1 else axs[i]
+            display, loader = self.init_signal(ax,signal_config,viewer_config)
+            displays.append(display); loaders.append(loader)
+        return displays,loaders
 
     def auto_scale(self,signal):
         percentiles = np.percentile(np.abs(signal), 95, axis=1)
@@ -69,7 +70,7 @@ class ActionHandler():
                              viewer_config,signal_configs,displays,loaders),                             
             'b': partial(self.move_window, 'b',
                              viewer_config,signal_configs,displays,loaders),                             
-            'init': partial(self.update,
+            'init': partial(self.init_viewer,
                              viewer_config,signal_configs,displays,loaders)
             }
 
@@ -130,6 +131,11 @@ class ActionHandler():
             t_start = timestamps[timestamp_idx%len(timestamps)]-windowsize/2
         return t_start, timestamp_idx
 
+    def init_viewer(self,viewer_config,signal_configs,displays,loaders):
+        self.fig.suptitle(viewer_config.title)
+        self.update(viewer_config,signal_configs,displays,loaders)
+        self.fig.tight_layout()
+
 def round_to_first_digit(value):
     if value == 0:
         return 0  # Handle the zero case separately to avoid log10(0)
@@ -154,3 +160,11 @@ def seconds_to_hms(seconds):
         formatted_time = result_datetime.strftime('%H:%M:%S')
 
         return formatted_time
+
+def _validate_property(property):
+    """Ensure signal_configs is a list."""
+    if property == None:
+        return []
+    if not isinstance(property, list):
+        return [property]
+    return property

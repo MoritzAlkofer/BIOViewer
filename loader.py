@@ -33,6 +33,7 @@ class SignalLoader():
 class EventLoader():
     def __init__(self,config,transforms=None):
         self.config = config
+        self.transforms = transforms
 
     def load_signal(self,path_signal):
         signal = np.load(path_signal)

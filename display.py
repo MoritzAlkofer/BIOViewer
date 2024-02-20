@@ -10,17 +10,26 @@ class SignalDisplay():
         y_locations = signal_config.y_locations
         Fs = signal_config.Fs
         scale = signal_config.scale
+        self.ax = ax
 
-        self.lines = []
-        for idx in range(len(channel_names)):
-            n_points = int((t_end-t_start)*Fs)
-            line, = ax.plot((np.linspace(t_start,t_end,n_points)),([-idx]*n_points),'black',linewidth=0.7)
-            self.lines.append(line)
-        plot_scale(ax,scale,unit)
+        self.lines = self._add_lines(self.ax,t_start,t_end,channel_names,Fs)
+        self.ax = self._fix_ticks_and_lim(self.ax,y_locations,channel_names,t_start,t_end)
+        self.ax = plot_scale(self.ax,scale,unit)
+
+    def _fix_ticks_and_lim(self,ax,y_locations,channel_names,t_start,t_end):
         ax.set_yticks(y_locations,channel_names)
         ax.set_ylim(min(y_locations)-1,max(y_locations)+1)
         ax.set_xlim(t_start,t_end)
-        self.ax = ax
+        return ax
+
+
+    def _add_lines(self,ax,t_start,t_end,channel_names,Fs):
+        lines =[]
+        for idx in range(len(channel_names)):
+            n_points = int((t_end-t_start)*Fs)
+            line, = ax.plot((np.linspace(t_start,t_end,n_points)),([-idx]*n_points),'black',linewidth=0.7)
+            lines.append(line)
+        return lines
 
     def plot_data(self,signal,y_locations):
         for i,(line,y_location) in enumerate(zip(self.lines,y_locations)):
@@ -34,3 +43,4 @@ class SignalDisplay():
 def plot_scale(ax,scale,unit):
     ax.plot((1,1),(0,-1),'r')
     ax.text(1.1,-0.5,f'{scale} {unit}',c='r')
+    return ax

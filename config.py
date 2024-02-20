@@ -1,4 +1,4 @@
-class SignalConfig():
+class ContinuousConfig():
     """
     Configuration class for continuous signal visualization.
 
@@ -25,6 +25,21 @@ class SignalConfig():
         self.scale = scale
         self.transforms = _validate_property(transforms)
 
+class EventConfig():
+    def __init__(self,path_signals,loader,Fs=int,channel_names=list,titles=None,unit='arbitrary units',
+                 real_time=False,t_ticks=True,y_locations='auto',scale='auto',transforms=None):
+        self.path_signals = _validate_property(path_signals)
+        self.loader = loader
+        self.Fs = Fs
+        self.channel_names = _validate_property(channel_names)
+        self.y_locations = [-idx for idx in range(len(self.channel_names))] if y_locations == 'auto' else y_locations
+        self.titles = _validate_property(titles)
+        self.unit = unit
+        self.real_time =real_time
+        self.t_ticks = t_ticks
+        self.scale = scale
+        self.transforms = _validate_property(transforms)
+
 class ViewerConfig():
     """
     Configuration class for full Viewer
@@ -40,11 +55,12 @@ class ViewerConfig():
         self.t_start = t_start
         self.windowsize = windowsize
         self.stepsize = stepsize
-        self.title = title
+        self.title = _validate_property(title)
         self.t_end = t_start+windowsize
         self.path_save = path_save
         self.timestamps = _validate_property(timestamps)
         self.timestamp_idx = -1
+        self.sample_idx = 0
 
 
 def _validate_property(property):
