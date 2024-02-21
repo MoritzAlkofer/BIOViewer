@@ -14,7 +14,7 @@ class SignalLoader():
         self.signal = signal
         
         
-    def load_signal(self,start,windowsize,scale):
+    def __call__(self,start,windowsize,scale):
         """
         Load a segment of the signal data.
         Args:
@@ -28,17 +28,4 @@ class SignalLoader():
         for transform in self.transforms:
             signal = transform(signal)
         signal = (1/scale)*signal
-        return signal
-
-class EventLoader():
-    def __init__(self,config,transforms=None):
-        self.config = config
-        self.transforms = transforms
-
-    def load_signal(self,path_signal):
-        signal = np.load(path_signal)
-        start, end  = self.config.t_start*self.config.Fs, self.config.t_end*self.config.Fs
-        signal = signal[:,start:end]
-        for transform in self.transforms:
-            signal = transform(signal)
         return signal

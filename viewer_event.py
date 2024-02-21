@@ -9,15 +9,23 @@ class EventViewer():
     def __init__(self,signal_configs,t_start=0,windowsize=15,stepsize=10,
                  title=None,path_save='Figures',timestamps=None,
                  height_ratios='auto',figsize=(7,4)):
-        
+
+        # init configs        
         self.signal_configs = _validate_property(signal_configs)
-        height_ratios = self._init_height_ratios(height_ratios,signal_configs)
         self.viewer_config = ViewerConfig(t_start,windowsize,stepsize,title,path_save,timestamps)
+
+        # build viewer, displays and loaders
+        height_ratios = self._init_height_ratios(height_ratios,signal_configs)
         self.fig, self.axs = plt.subplots((len(signal_configs)),height_ratios=height_ratios,figsize=figsize)
         self.displays, self.loaders = self._build_displays_and_loaders(self.axs,signal_configs,self.viewer_config)
+
+        # add action, init viewer and connect 
         action_handler = ActionHandler(self.fig,self.viewer_config,self.signal_configs,self.displays,self.loaders)
         action_handler('init')
         self.fig.canvas.mpl_connect('key_press_event', lambda event: action_handler(event.key))
+        # display
+        plt.ion()
+        plt.show(block=True)
 
     def _init_height_ratios(self,height_ratios,signal_configs):
         if height_ratios == 'auto':
@@ -67,6 +75,8 @@ class ActionHandler():
         sample_idx = viewer_config.sample_idx
         for signal_config,display,loader in zip(signal_configs,displays,loaders):
             data = loader.load_signal(signal_config.path_signals[sample_idx])
+            for transform in signal_config.transforms:
+                data = transform(data)
             data = (1/signal_config.scale)*data
             display.plot_data(data,signal_config.y_locations)
         if len(viewer_config.title)!=0:
