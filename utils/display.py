@@ -5,6 +5,7 @@ class SignalDisplay():
         # unpack configs
         t_start = viewer_config.t_start
         t_end = viewer_config.t_end
+        windowsize = viewer_config.windowsize
         channel_names = signal_config.channel_names
         unit = signal_config.unit
         y_locations = signal_config.y_locations
@@ -14,7 +15,7 @@ class SignalDisplay():
 
         self.lines = self._add_lines(self.ax,t_start,t_end,channel_names,Fs)
         self.ax = self._fix_ticks_and_lim(self.ax,y_locations,channel_names,t_start,t_end)
-        self.ax = plot_scale(self.ax,scale,unit)
+        self.ax = plot_scale(self.ax,scale,windowsize,unit)
 
     def _fix_ticks_and_lim(self,ax,y_locations,channel_names,t_start,t_end):
         ax.set_yticks(y_locations,channel_names)
@@ -36,11 +37,8 @@ class SignalDisplay():
             channel_signal = signal[i,:]+y_location
             line.set_ydata(channel_signal)
 
-    def set_t_ticks(self,ticks,labels):
-        self.ax.set_xticks(ticks,labels)
-
-
-def plot_scale(ax,scale,unit):
-    ax.plot((1,1),(0,-1),'r')
-    ax.text(1.1,-0.5,f'{scale} {unit}',c='r')
+def plot_scale(ax,scale,windowsize,unit):
+    t = 0.05*windowsize
+    ax.plot((t,t),(0,-1),'r')
+    ax.text(t+0.1,-0.5,f'{scale} {unit}',c='r')
     return ax
