@@ -10,8 +10,8 @@ from bioviewer import Signal
 # init signals
 data = np.load('../demos/example.npy')
 
-signal0 = Signal(data=data,y_ticks=[1,2,3,4,5,6])
-signal1 = Signal(data=data,y_ticks=[1,2,3,4,5,6])
+signal0 = Signal(data=data)
+signal1 = Signal(data=data)
 
 
 
