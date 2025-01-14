@@ -26,4 +26,4 @@ signal0 = Signal(data=data,fs=128,scale_factor=220,y_ticks=['a','b','c','d','e',
 signal1 = Signal(data=data,fs=128)
 
 # tie everything together in Coordinator
-viewer = Viewer(signals = [marker,signal0,signal1],figsize=(14,4),timestamps=timestamps,stepsize=0.5)
+viewer = Viewer(signals = [signal0,signal1],figsize=(14,4),timestamps=timestamps,stepsize=0.1)
