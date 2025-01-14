@@ -1,6 +1,6 @@
 from functools import partial
 from typing import Any, List
-
+import numpy as np
 
 class StateManager:
     def __init__(self,t_start = 0,windowsize=15,stepsize=13,timestamps = [],real_time=True):
@@ -22,7 +22,7 @@ class StateManager:
             'pass': lambda: None
             }
     
-    def __call__(self,key):
+    def update_state(self,key):
          if key in self.actions.keys():
             self.actions[key]()
 
@@ -31,8 +31,10 @@ class StateManager:
             pass            
         if direction =='right':
             self.t_start = self.t_start + self.stepsize
+            self.t_start = np.round(self.t_start,5)
         if direction =='left':
             self.t_start = self.t_start - self.stepsize
+            self.t_start = np.round(self.t_start,5)
         if direction in ['n','b']:
             self.go_to_marker(direction)        
 

@@ -60,8 +60,18 @@ class SignalDisplay():
             self.lines[idx].set_ydata(channel_signal)
                 
     def update_t_ticks(self,t_start,windowsize):
-        t_labels = list(range(int(t_start), int(t_start+windowsize) + 1))
-        offset = t_start%1
+        offset = 1 - t_start % 1
+        offset = np.round(offset,5)
+        
+        offset = 0 if offset == 1 else np.round(offset,5) 
+        if offset == 0:
+            start_label = int(t_start)
+            end_label = int(t_start + windowsize + 1)
+        else:
+            start_label = int(np.ceil(t_start))
+            end_label = int(np.floor(t_start+windowsize))+1
+        t_labels = list(range(start_label,end_label))
+        
         t_ticks = [t+offset for t in range(len(t_labels))]
         # if the time is to be displayed in h:m:s instead of |s|, convert labels
         if self.real_time==True:

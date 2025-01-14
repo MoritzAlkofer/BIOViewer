@@ -1,4 +1,5 @@
 import matplotlib.pyplot as plt
+import os 
 from .state import StateManager
 from .signal import Signal
 from typing import List
@@ -54,15 +55,16 @@ class Viewer:
         - Scales and labels are customizable through the attributes of the respective `Signal` instances.
     """
 
-    def __init__(self,signals=List[Signal],figsize=(10,4),t_start=0,windowsize=15,stepsize=13,timestamps=[],height_ratios='auto',real_time=True):
+    def __init__(self,signals: List[Signal],savepath='Figures',figsize=(10,4),t_start=0,windowsize=15,stepsize=13,timestamps=[],height_ratios='auto',real_time=True):
         self.signals = signals
+        self.savepath = savepath
         self.statemanager = StateManager(t_start=t_start,windowsize=windowsize,stepsize=stepsize,timestamps=timestamps,real_time=real_time) #init statemanager
         self.height_ratios = self._init_height_ratios(height_ratios)
         self.fig,self.axs = self._init_fig_and_axs(figsize)
         self._init_signaldisplays()
         self._init_button_connection()
         self._init_scales()
-        self.update('pass') # initial update to load and display first frame of ts
+        self._update_display() # initial update to load and display first frame of ts
         self._show_figure()
 
     def _init_height_ratios(self,height_ratios):
@@ -92,21 +94,29 @@ class Viewer:
                 signal.display.plot_scale(signal.data.scale_factor,self.statemanager.windowsize,signal.display.unit)
     
     def _init_button_connection(self):
-        self.fig.canvas.mpl_connect('key_press_event', lambda event: self.update(event.key))
+        self.fig.canvas.mpl_connect('key_press_event', lambda event: self._handle_key_event(event.key))
 
     def _show_figure(self):
         plt.ion() # make interactive 
         plt.tight_layout()
         plt.show(block=True) # show figure
 
-    def update(self,key):
-        self.statemanager(key)
+    def _handle_key_event(self,key):
+        if key =='z':
+            self._save_figure()
+        else:
+            self.statemanager.update_state(key)
+            self._update_display()
+
+    def _save_figure(self):
+        savepath = os.path.join(self.savepath,f'tstart_{self.statemanager.t_start}s.png')
+        os.makedirs(os.path.dirname(savepath), exist_ok=True)
+        self.fig.savefig(savepath)
+
+    def _update_display(self):
         for signal in self.signals:
             x = signal.data.load(self.statemanager.t_start,self.statemanager.windowsize)
             x = signal.data.scale(x)
             signal.display.update_lines(data=x)
             signal.display.update_t_ticks(self.statemanager.t_start,self.statemanager.windowsize)
     
-    
-
-

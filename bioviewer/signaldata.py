@@ -49,8 +49,8 @@ class SignalData():
         Returns:
             np.ndarray: Loaded segment of the signal.
         """
-        start_ts = int(t_start* self.fs)
-        end_ts = int((t_start+windowsize)*self.fs)
+        start_ts = int(round(t_start* self.fs))
+        end_ts = int(round((t_start+windowsize)*self.fs))
         
         # regular case, no padding required
         if (start_ts>=0) and (end_ts<self.n_timesteps):
@@ -58,14 +58,13 @@ class SignalData():
 
         # if start is before timestep 0, pad to the left
         elif (start_ts<0)and(end_ts>0):
-            n_timesteps = int(-t_start*self.fs)
+            n_timesteps = int(round(-t_start*self.fs))
             padding = np.full((self.n_channels,n_timesteps), np.nan)
             signal = self.data[:,0:end_ts] # from 0 to desired end of window
             signal = np.hstack([padding,signal]) # pad from negative time to 0
-
         # if end_ts is before ts, set all singal to nan
         elif end_ts<0:
-            n_timesteps = int(windowsize*self.fs)
+            n_timesteps = int(round(windowsize*self.fs))
             signal = np.full((self.n_channels,n_timesteps), np.nan)
 
         # if end timestep is after end of signal, pad to the right
