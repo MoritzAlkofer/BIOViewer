@@ -1,0 +1,2 @@
+add markers
+add auto scaling
