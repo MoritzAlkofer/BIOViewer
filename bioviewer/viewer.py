@@ -78,6 +78,8 @@ class Viewer:
     def _init_fig_and_axs(self,figsize):
         n_displays = len(self.signals)
         fig,axs = plt.subplots(n_displays,1,figsize=figsize,height_ratios=self.height_ratios,sharex=True)
+        if n_displays == 1:
+            axs = [axs]
         return fig, axs
     
     def _init_signaldisplays(self):
