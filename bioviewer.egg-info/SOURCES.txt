@@ -1,15 +1,5 @@
 README.md
 setup.py
-BIOViewer/__init__.py
-BIOViewer/signal.py
-BIOViewer/signaldata.py
-BIOViewer/signaldisplay.py
-BIOViewer/state.py
-BIOViewer/viewer.py
-BIOViewer.egg-info/PKG-INFO
-BIOViewer.egg-info/SOURCES.txt
-BIOViewer.egg-info/dependency_links.txt
-BIOViewer.egg-info/top_level.txt
 bioviewer/__init__.py
 bioviewer/signal.py
 bioviewer/signaldata.py
