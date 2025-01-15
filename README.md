@@ -9,7 +9,7 @@ The library is designed for data scientists, engineers, and researchers working 
 ## Features
 
 - **Streamlined Signal Management**: Encapsulate multi-channel signal data with metadata such as sampling frequency and scale factors.
-- **Dynamic Visualization**: Customize signal plots with channel-specific settings (e.g., colors, labels, and scales).
+- **Dynamic Viscd ualization**: Customize signal plots with channel-specific settings (e.g., colors, labels, and scales).
 - **Interactive Viewer**: Navigate through signals with keyboard controls and timestamps for quick analysis.
 
 ## Installation

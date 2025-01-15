@@ -1,11 +1,12 @@
-Metadata-Version: 2.2
-Name: bioviewer
-Version: 0.1.0
+Metadata-Version: 2.1
+Name: BIOViewer
+Version: 0.2.0
 Summary: This library is designed to build visualization tools for biosignals such as EEG or ECG.
 Home-page: https://github.com/MoritzAlkofer/BIOViewer
 Author: Moritz Alkofer
 Author-email: moritz.alkofer@protonmail.com
-Dynamic: author
-Dynamic: author-email
-Dynamic: home-page
-Dynamic: summary
+License: UNKNOWN
+Platform: UNKNOWN
+
+UNKNOWN
+
