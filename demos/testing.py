@@ -1,29 +1,45 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from bioviewer import SignalData
-from bioviewer import SignalDisplay
-from bioviewer import Viewer
-from bioviewer import StateManager
-from bioviewer import Signal
-    
+from bioviewer import SignalData, SignalDisplay, Signal, Viewer
 
-# init signals
-data = np.load('../demos/example.npy')
+# Example: Load signal data from a .npy file
+data = np.load('../demos/example.npy')  # Load data for visualization
 
-timestamps = [3,7,12,21] #seconds
-markersize = 1 #second
-fs = 128
-marker = np.full((1,data.shape[1]), np.nan).copy()
+# Parameters for signal markers and visualization
+timestamps = [3, 7, 12, 21]  # Timepoints to mark on the signal
+marker_size = 1  # Duration of marker (in seconds)
+fs = 128  # Sampling frequency (Hz)
+
+# Create a marker signal
+marker = np.full((1, data.shape[1]), np.nan).copy()
 for timestamp in timestamps:
-    start = int((timestamp-markersize/2)*fs)
-    end = int((timestamp+markersize/2)*fs)
-    marker[:,start:end]=0
+    start = int(round(timestamp * fs))
+    end = int(round((timestamp + marker_size) * fs))
+    marker[:, start:end] = 0  # Add marker at the specified timestamps
 
-# Example: Assign specific rows
+# Create Signal instances
+signal0 = Signal(data=data, fs=fs, scale_factor='auto', y_ticks=['a', 'b', 'c', 'd', 'e', 'f'], 
+                 unit='mV', colors='bbbkbr', linewidth=1, show_scale=True)
 
-marker = Signal(data=marker,fs=128,show_scale=False,colors='r',linewidth=3,y_ticks=['events'])
-signal0 = Signal(data=data,fs=128,scale_factor=220,y_ticks=['a','b','c','d','e','f'],unit='mv',colors='bbbkbr',linewidth=1,show_scale=True)
-signal1 = Signal(data=data,fs=128)
+signal1 = Signal(data=data, fs=fs)
 
-# tie everything together in Coordinator
-viewer = Viewer(signals = [signal0,signal1],figsize=(14,4),timestamps=timestamps,stepsize=0.1)
+marker_signal = Signal(data=marker, fs=fs, show_scale=False, colors='r', linewidth=3, y_ticks=['events'])
+
+# Combine signals in a Viewer
+viewer = Viewer(
+    signals=[marker_signal, signal0, signal1],  # Signals to visualize
+    figsize=(14, 4),  # Size of the plot
+    timestamps=timestamps,  # List of timestamps for navigation
+    stepsize=0.1  # Step size for scrolling through the signal
+)
+
+# Instructions for the user
+print("Viewer Initialized! Use the following keys for navigation:")
+print("Right arrow: Scroll right (forward in time)")
+print("Left arrow: Scroll left (back in time)")
+print("n: Go to the next timestamp")
+print("b: Go to the previous timestamp")
+print("z: Save the current figure as an image")
+
+# Display the Viewer
+plt.show(block=True)  # Display the interactive plot
